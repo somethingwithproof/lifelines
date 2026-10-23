@@ -45,15 +45,29 @@ environ_determine_tempfile (void)
 #ifdef WIN32
 	static char win32_tempfile[_MAX_PATH];
 	char win32_tempdir[_MAX_PATH];
+	char win32_tmpname[_MAX_PATH];
 	DWORD dirlen;
 	UINT fileid;
+	size_t namelen;
 
 	dirlen = GetTempPathA(sizeof(win32_tempdir), win32_tempdir);
 	if (dirlen == 0 || dirlen >= sizeof(win32_tempdir))
 		return 0;
-	fileid = GetTempFileNameA(win32_tempdir, "llt", 0, win32_tempfile);
+	fileid = GetTempFileNameA(win32_tempdir, "llt", 0, win32_tmpname);
 	if (!fileid)
 		return 0;
+	/* use .txt extension, otherwise notepad SaveAs UTF-8 is problematic */
+	namelen = strlen(win32_tmpname);
+	if (namelen < 4 || win32_tmpname[namelen - 4] != '.') {
+		DeleteFileA(win32_tmpname);
+		return 0;
+	}
+	memcpy(win32_tempfile, win32_tmpname, namelen + 1);
+	memcpy(win32_tempfile + namelen - 3, "txt", 3);
+	if (!MoveFileA(win32_tmpname, win32_tempfile)) {
+		DeleteFileA(win32_tmpname);
+		return 0;
+	}
 	return win32_tempfile;
 #else
 	static char template[] = "/tmp/lltmpXXXXXX";
