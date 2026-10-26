@@ -283,7 +283,7 @@ filepath (CNSTRING name, CNSTRING mode, CNSTRING path, CNSTRING  ext, INT utf8)
 	strcpy(buf1, path);
 	zero_separate_path(buf1);
 	p = buf1;
-	while (*p) {
+	while (p < buf1 + sizeof(buf1) && *p) {
 		q = buf2;
 		strcpy(q, p);
 		expand_special_fname_chars(buf2, sizeof(buf2), utf8);
