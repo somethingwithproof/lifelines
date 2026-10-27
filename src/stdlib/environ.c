@@ -30,7 +30,11 @@
 
 #include "llstdlib.h"
 #ifdef WIN32
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
 #include <windows.h>
+#endif
 #endif
 
 /*=======================================================

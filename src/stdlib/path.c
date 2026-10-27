@@ -292,16 +292,18 @@ filepath (CNSTRING name, CNSTRING mode, CNSTRING path, CNSTRING  ext, INT utf8)
 			strcpy(q, LLSTRDIRSEPARATOR);
 			q++;
 		}
-		if ((size_t)(q-buf2) + (size_t)namelen + (size_t)elen < sizeof(buf2)) {
-			strcpy(q, name);
-			if (ext) {
-				nlen = strlen(buf2);
-				strcat(buf2, ext);
-				if (access(buf2, 0) == 0) return strsave(buf2);
-				buf2[nlen] = '\0'; /* remove extension */
-			}
-			if (access(buf2, 0) == 0) return strsave(buf2);
+		if ((size_t)(q-buf2) + (size_t)namelen + (size_t)elen >= sizeof(buf2)) {
+			p += strlen(p) + 1;
+			continue;
 		}
+		strcpy(q, name);
+		if (ext) {
+			nlen = strlen(buf2);
+			strcat(buf2, ext);
+			if (access(buf2, 0) == 0) return strsave(buf2);
+			buf2[nlen] = '\0'; /* remove extension */
+		}
+		if (access(buf2, 0) == 0) return strsave(buf2);
 		p += strlen(p);
 		p++;
 	}
@@ -560,7 +562,7 @@ get_home (void)
 BOOLEAN
 expand_special_fname_chars (STRING buffer, INT buflen, INT utf8)
 {
-	char *sep;
+	const char *sep;
 	STRING tmp;
 
 	if (buffer[0] != '~') return TRUE;
