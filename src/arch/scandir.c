@@ -92,15 +92,17 @@ scandir (const char *dir, struct dirent ***namelist,
 
       if (!select || select(current))
       {
+          /* On allocation failure, fail the whole scan: a bare continue
+             would skip FindNextFile and retry the same entry forever. */
           struct dirent **newnames = realloc(names, sizeof(*names) * (pos + 1));
           if (NULL == newnames)
-              continue;
+              goto fail;
 
           names = newnames;
 
           struct dirent *copyentry = malloc(current->d_reclen);
           if (NULL == copyentry)
-             continue;
+             goto fail;
 
           memcpy(copyentry, current, current->d_reclen);
 
@@ -122,6 +124,14 @@ scandir (const char *dir, struct dirent ***namelist,
 
   *namelist = names;
   return pos;
+
+fail:
+  while (pos > 0)
+    free(names[--pos]);
+  free(names);
+  free(pattern);
+  FindClose(handle);
+  return -1;
 }
 #else
 int

@@ -58,11 +58,11 @@ snprintf(char *str, size_t size, const char *format, ...)
 {
   int retval;
   va_list ap;
-  if (!size) return -1;
   va_start(ap, format);
 #if defined(HAVE__VSNPRINTF)
   retval = _vsnprintf(str, size, format, ap);
-  if (retval < 0 || (size_t)retval >= size)
+  /* size 0 is the C99 length probe (str may be NULL): write nothing. */
+  if (size && (retval < 0 || (size_t)retval >= size))
     str[size-1] = 0;
 #else
   retval = vsnprintf(str, size, format, ap);
